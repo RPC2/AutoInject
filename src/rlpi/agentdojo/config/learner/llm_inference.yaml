@@ -1,0 +1,59 @@
+# @package _global_
+learner:
+  type: llm_inference
+
+  # ============================================================================
+  # Model Configuration
+  # ============================================================================
+  attack_model_name: "Qwen/Qwen2-1.5B"  # Attack policy model for suffix generation
+  device: "cuda"
+  seed: 42
+  feedback_fallback_model: "gpt-4o-mini-2024-07-18"  # Used if victim model cannot return logprobs
+
+  # NOTE: The following are auto-set by learner_factory (do not override):
+  #   - victim_model_name: Display name extracted from MODEL_NAMES[cfg.model] (e.g., "GPT-4")
+  #   - user_name: Extracted from suite environment
+  #   - feedback_model: Set to cfg.model for GPT feedback (e.g., "gpt-4o-2024-08-06")
+
+  # ============================================================================
+  # Generation Parameters
+  # ============================================================================
+  max_suffix_length: 30  # Token limit for generated suffixes
+  temperature: 0.9       # Sampling temperature (higher = more diverse suffixes)
+  top_p: 0.95           # Nucleus sampling threshold
+
+  # ============================================================================
+  # Experience-Based Prompt Parameters
+  # ============================================================================
+  use_experience_examples: true  # Use experience history in prompt (vs. hardcoded examples)
+  num_experience_examples: 3     # Number of top examples to include from experience
+  include_gpt_reasoning: true     # Include GPT reasoning for best suffix in prompt
+
+  # ============================================================================
+  # GPT Feedback Configuration
+  # ============================================================================
+  gpt_enabled: true  # Enable GPT-based suffix quality feedback
+
+  # Feedback regime thresholds (based on experience count fraction)
+  gpt_sparse_threshold: 0.1   # Below this: sparse feedback regime
+  gpt_medium_threshold: 0.3   # Sparse to medium transition
+  gpt_dense_threshold: 0.5    # Medium to dense transition
+
+  # Feedback regime weights (how much to weight GPT feedback vs. task success)
+  gpt_sparse_weight: 0.8      # High weight in sparse regime (rely on GPT)
+  gpt_medium_weight: 0.5      # Medium weight during transition
+  gpt_transition_weight: 0.3  # Weight during regime transitions
+  gpt_dense_weight: 0.1       # Low weight in dense regime (rely on task success)
+
+  # API configuration
+  gpt_max_retries: 3    # Maximum retry attempts for GPT API calls
+  gpt_retry_delay: 1.0  # Initial retry delay in seconds (exponential backoff)
+
+  # ============================================================================
+  # Logging
+  # ============================================================================
+  verbose: true  # Enable detailed logging
+  # log_dir: Auto-set to Hydra output directory
+  save_outputs: true  # Save experience history and stats
+  save_experience_frequency: 1  # Save every Nth experience (1 = save all)
+

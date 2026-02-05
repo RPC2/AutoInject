@@ -1,0 +1,5 @@
+# @package _global_
+learner:
+  type: noop
+  learning_rate: 0.0
+  exploration_rate: 0.0

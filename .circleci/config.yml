@@ -1,0 +1,31 @@
+version: 2.1
+
+jobs:
+  lint:
+    docker:
+      - image: cimg/python:3.10
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum ".pre-commit-config.yaml" }}
+            - v1-dependencies-
+      - run:
+          name: Install dependencies
+          command: |
+            python -m pip install --upgrade pip
+            pip install pre-commit
+      - save_cache:
+          paths:
+            - ~/.cache/pre-commit
+            - ~/.cache/pip
+          key: v1-dependencies-{{ checksum ".pre-commit-config.yaml" }}
+      - run:
+          name: Run pre-commit hooks
+          command: pre-commit run --all-files
+
+workflows:
+  version: 2
+  test-and-lint:
+    jobs:
+      - lint

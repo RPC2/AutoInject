@@ -1,0 +1,50 @@
+defaults:
+  - _self_
+  - test_tasks: banking
+  - model_attack_strings: banking
+  - override hydra/launcher: submitit_slurm
+
+# Source model information
+source_model: gpt-5
+
+# GPT-5 experiment directory for finding successful attack suffixes
+gpt5_experiment_dir: /cluster/project/infk/krause/chexin/rlpi/multirun/trl_suffix/banking/2025-11-27/gpt-5_trl_all_tasks-09-45-54
+
+# Target model information
+exp_ident: transfer
+target_model: google/gemini-2.0-flash-001
+attack: direct
+defense: null
+system_message: null
+
+
+# Test tasks are loaded from the selected test_tasks config group
+# Override with: test_tasks=banking|travel|workspace|slack
+# Random seed
+seed: 1
+
+# Number of times to repeat each attack (default: 10)
+num_repeats: 10
+
+# Hydra settings
+hydra:
+  run:
+    dir: ./outputs/transfer/${now:%Y-%m-%d}/${exp_ident}-${now:%H-%M-%S}
+  sweep:
+    dir: ./multirun/transfer/${now:%Y-%m-%d}/${exp_ident}-${now:%H-%M-%S}
+  job:
+    chdir: true
+  launcher:
+    submitit_folder: ${hydra.run.dir}/.submitit/%j
+    timeout_min: 1440
+    cpus_per_task: 1
+    tasks_per_node: 1
+    nodes: 1
+    name: ${exp_ident}
+    _target_: hydra_plugins.hydra_submitit_launcher.submitit_launcher.SlurmLauncher
+    # additional_parameters: {"gpus": "titan_rtx:1"}
+    # additional_parameters: {}
+    mem_per_cpu: 16G
+    setup:
+      - '#SBATCH --requeue'
+

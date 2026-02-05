@@ -1,0 +1,41 @@
+defaults:
+  - _self_
+  - learner: ppo
+  - override hydra/launcher: submitit_slurm
+
+# Experiment settings
+exp_ident: debug
+model: meta-llama/Llama-3.1-8B
+model_id: null
+suite: travel
+query_budget: 500
+attack: direct
+defense: null
+system_message: null
+force_rerun: false
+seed: 1
+user_tasks: []
+modules_to_load: []
+injection_tasks: []
+max_tokens: null  # Maximum tokens to generate. Set to a value (e.g., 32000) for models with context limits like qwen3-4b
+
+# Hydra settings
+hydra:
+  run:
+    dir: ./outputs/${learner.type}/${suite}/${now:%Y-%m-%d}/${exp_ident}-${now:%H-%M-%S}
+  sweep:
+    dir: ./multirun/${learner.type}/${suite}/${now:%Y-%m-%d}/${exp_ident}-${now:%H-%M-%S}
+  job:
+    chdir: true
+  launcher:
+    submitit_folder: ${hydra.sweep.dir}/.submitit/%j
+    timeout_min: 1440
+    cpus_per_task: 1
+    tasks_per_node: 1
+    nodes: 1
+    name: ${exp_ident}
+    _target_: hydra_plugins.hydra_submitit_launcher.submitit_launcher.SlurmLauncher
+    # additional_parameters: {"gpus": "titan_rtx:1"}
+    mem_per_cpu: 32G
+    setup:
+      - '#SBATCH --requeue'

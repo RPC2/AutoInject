@@ -1,0 +1,39 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.3.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: ^agentdojo/
+      - id: check-yaml
+        exclude: ^agentdojo/
+      - id: check-json
+        exclude: ^agentdojo/
+  - repo: https://github.com/psf/black
+    rev: 24.4.2
+    hooks:
+      - id: black
+        args: [--check, --line-length=79, src/rlpi]
+        exclude: ^agentdojo/
+        language_version: python3
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: [--profile, black, --check-only, --line-length, '79', src/rlpi]
+        exclude: ^agentdojo/
+        language_version: python3
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.0.0
+    hooks:
+      - id: flake8
+        args: [--ignore, 'W503,E203,E501', src/rlpi]
+        exclude: ^agentdojo/
+        language_version: python3
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: e5ea667
+    hooks:
+      - id: mypy
+        args: [--ignore-missing-imports, --explicit-package-bases]
+        exclude: ^agentdojo/
+        language_version: python3
+        additional_dependencies: [types-PyYAML>=6.0]

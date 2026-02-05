@@ -1,0 +1,78 @@
+# @package _global_
+learner:
+  type: trl_suffix
+
+  # ============================================================================
+  # Model Configuration
+  # ============================================================================
+  attack_model_name: "Qwen/Qwen2-1.5B"  # Attack policy model for suffix generation
+  device: "cuda"
+  seed: 42
+  feedback_fallback_model: "gpt-4o-mini-2024-07-18"  # Used if victim model cannot return logprobs
+
+  # NOTE: The following are auto-set by learner_factory (do not override):
+  #   - victim_model_name: Display name extracted from MODEL_NAMES[cfg.model] (e.g., "GPT-4")
+  #   - user_name: Extracted from suite environment
+  #   - feedback_model: Set to cfg.model for GPT feedback (e.g., "gpt-4o-2024-08-06")
+
+  # ============================================================================
+  # Generation Parameters
+  # ============================================================================
+  max_suffix_length: 30  # Token limit for generated suffixes (reduced from 50)
+  temperature: 0.9       # Sampling temperature (higher = more diverse suffixes)
+  top_p: 0.95           # Nucleus sampling threshold
+
+  # ============================================================================
+  # GRPO Training Parameters
+  # ============================================================================
+  # Experience collection
+  min_experiences_for_training: 1  # Minimum experiences before triggering training
+
+  # Training loop configuration
+  grpo_num_generations: 8      # Suffixes per prompt per iteration
+  grpo_num_iterations: 5        # Training iterations per session (reduced from 10)
+  grpo_learning_rate: 1.0e-5    # Policy learning rate
+
+  # Batch configuration
+  grpo_per_device_train_batch_size: 2  # Will auto-adjust for small datasets
+  grpo_gradient_accumulation_steps: 2  # Maintains effective batch size
+  grpo_warmup_steps: 2                # Learning rate warmup steps
+
+  # Stability parameters (to prevent gradient explosion)
+  grpo_max_grad_norm: 0.1  # Gradient clipping - lower values prevent explosion (default: 0.1)
+  grpo_beta: 10.0  # KL penalty - higher values constrain policy updates more (default: 10.0)
+  grpo_adam_epsilon: 1e-5  # Adam epsilon - higher values prevent division by very small numbers (default: 1e-5)
+  grpo_adam_beta2: 0.98  # Adam beta2 - higher values make optimizer more conservative (default: 0.98)
+
+  # ============================================================================
+  # Evaluation Parameters
+  # ============================================================================
+  # Number of ADDITIONAL random tasks for generalization testing
+  # 0 = only evaluate on target task (task-specific learning)
+  grpo_eval_num_generalization_tasks: 0
+
+  # ============================================================================
+  # GPT Feedback Configuration
+  # ============================================================================
+  gpt_enabled: true  # Enable GPT-based suffix quality feedback
+
+  # Feedback regime thresholds (based on experience count fraction)
+  gpt_sparse_threshold: 0.1   # Below this: sparse feedback regime
+  gpt_medium_threshold: 0.3   # Sparse to medium transition
+  gpt_dense_threshold: 0.5    # Medium to dense transition
+
+  # Feedback regime weights (how much to weight GPT feedback vs. task success)
+  gpt_sparse_weight: 0.8      # High weight in sparse regime (rely on GPT)
+  gpt_medium_weight: 0.5      # Medium weight during transition
+  gpt_transition_weight: 0.3  # Weight during regime transitions
+  gpt_dense_weight: 0.1       # Low weight in dense regime (rely on task success)
+
+  # API configuration
+  gpt_max_retries: 3    # Maximum retry attempts for GPT API calls
+  gpt_retry_delay: 1.0  # Initial retry delay in seconds (exponential backoff)
+
+  # ============================================================================
+  # Logging
+  # ============================================================================
+  verbose: true  # Enable detailed logging
+  # log_dir: Auto-set to Hydra output directory
