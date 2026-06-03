@@ -1,20 +1,209 @@
 # AutoInject
 
-This is the repository for paper Learning to Inject: Automated prompt Injection via Reinforcement Learning.
+Official code for the paper **"Learning to Inject: Automated Prompt Injection via Reinforcement Learning"** (Xin Chen, Jie Zhang, Florian Tramèr).
 
-**Note**: The current version is not fully tested and robust yet; Some errors might occur when one tries to install this current version.
+AutoInject is a **black-box reinforcement-learning framework** that learns adversarial
+suffixes for prompt injection against LLM agents. Its core idea is a *learned,
+comparison-based reward*: each candidate suffix is scored against the best suffix seen
+so far, turning the binary attack-success signal into a dense reward that GRPO can
+optimize. The framework supports both online query-based attacks and offline-trained
+**transferable** suffixes, and can incorporate a utility objective when task-completion
+feedback is available. Attacks are evaluated on [AgentDojo](https://github.com/ethz-spylab/agentdojo).
 
-## Installation and running experiments from the paper
-Installing the environment:
+> **Abstract.** Prompt injection is a critical vulnerability in LLM agents, yet the
+> strongest methods still rely on human red-teamers and hand-crafted prompts. Adapting
+> automated jailbreak optimizers does not close this gap: jailbreaks shape models toward
+> generic compliance, while prompt injection requires emitting specific tool calls with
+> correct parameters. The success signal is binary, and randomly sampled suffixes almost
+> never trigger it—so standard optimizers have no gradient to follow. We present
+> AutoInject, a black-box reinforcement learning (RL) framework that learns adversarial
+> suffixes for prompt injection. A learned comparison-based reward scores each candidate
+> against the best suffix seen so far, turning the binary signal into a dense reward
+> suitable for RL optimization. The framework supports both online query-based attacks
+> and offline-trained transferable suffixes that need no utility access at deployment,
+> and incorporates a utility objective when task-completion feedback is available. On
+> AgentDojo, AutoInject outperforms template attacks, GCG, TAP, and adaptive attack
+> across production models, with statistically significant improvements under McNemar's
+> test (p < 0.05). Suffixes learned by AutoInject also break Meta-SecAlign-70B, a model
+> fine-tuned specifically to resist prompt injection, where template attacks fail
+> outright.
+
+---
+
+## Repository layout
+
 ```
-pip3 install torch
-# Note: You might need to refer to the pytorch official installation guide to match your own cuda version and setup.
+AutoInject/
+├── agentdojo/                      # Vendored AgentDojo benchmark (task suites + agent pipeline)
+├── src/rlpi/
+│   ├── agentdojo/
+│   │   ├── adaptive_agentdojo.py   # Main entry point: online attacks / training
+│   │   ├── transfer_attack.py      # Transfer-attack entry point
+│   │   ├── config/                 # Hydra configs (learners, suites, transfer)
+│   │   └── scripts/                # Example run scripts for every experiment
+│   └── attack/
+│       ├── learner_factory.py      # Dispatches learner type -> implementation
+│       ├── templates/              # Attack prompt templates / task modifiers
+│       └── learners/
+│           ├── trl_suffix/         # AutoInject (GRPO suffix learner) — the paper's method
+│           ├── adaptive_random_suffix/  # Random adaptive-attack baseline
+│           ├── llm_inference/      # LLM-inference baseline
+│           ├── evolutionary_search/# Evolutionary-search baseline
+│           └── noop.py             # Template attacks (no learning)
+└── setup.py
+```
+
+## Installation
+
+```bash
+# 1. Install PyTorch matching your CUDA setup (see https://pytorch.org).
+pip install torch
+
+# 2. Install AutoInject and the vendored AgentDojo benchmark.
 pip install -e .
-cd agentdojo && pip install -e .
+cd agentdojo && pip install -e . && cd ..
 ```
 
-If you want to test/use any OpenAI models, save your OpenAI API key under `~/.rlpi_openai_key`. We suggest to first try querying an OpenAI model using this key to test that it is working.
+Python 3.10+ is required. A CUDA-capable GPU is needed to train the GRPO suffix policy
+(`trl_suffix`); the template and API-only baselines run on CPU.
 
-If you want to test/use any OpenRouter models (e.g., Claude models), save your OpenRouter API key under `~/.rlpi_openrouter_key`.
+## API keys
 
-Most experiments from the paper can be run from files under `src/rlpi/agentdojo/scripts`.
+Models are accessed through provider APIs. Save your keys to these files (each script
+reads them automatically):
+
+| File | Used for |
+|------|----------|
+| `~/.rlpi_openai_key`     | OpenAI models (GPT-4.1-nano, GPT-5-nano, GPT-4o-mini feedback) |
+| `~/.rlpi_openrouter_key` | OpenRouter models (e.g. Claude, some Gemini routes) |
+| `~/.rlpi_togetherai_key` | Together AI models |
+
+We recommend issuing a test query to your chosen provider first to confirm the key works.
+
+## Quickstart
+
+Run AutoInject on a single (user task, injection task) pair in the banking suite:
+
+```bash
+export OPENAI_API_KEY=$(cat ~/.rlpi_openai_key)
+export TOKENIZERS_PARALLELISM=false
+
+python -m rlpi.agentdojo.adaptive_agentdojo \
+    exp_ident=quickstart \
+    model=gpt-4.1-nano \
+    suite=banking \
+    query_budget=260 \
+    user_tasks=[user_task_0] \
+    injection_tasks=[injection_task_0] \
+    learner=trl_suffix
+```
+
+Configuration is managed by [Hydra](https://hydra.cc); any field can be overridden on the
+command line (e.g. `suite=travel`, `learner=noop`, `query_budget=100`). Results are
+written under `outputs/` (see [Output structure](#output-structure)).
+
+## Reproducing the paper
+
+Example scripts live in `src/rlpi/agentdojo/scripts/`. Edit the variables at the top of
+each script (model, suite, task lists) to match the configuration you want.
+
+### Main results (Table 1) — ASR & utility across production models
+
+| Method | Script | Learner |
+|--------|--------|---------|
+| **AutoInject (ours)** | `trl_suffix.sh` | `trl_suffix` |
+| Template attacks (Direct, Ignore Previous, Important Instructions, InjecAgent, System Message, Tool Knowledge) | `attack_baselines.sh` | `noop` (set `attack=`) |
+| Random adaptive attack | `adaptive_random_suffix.sh` | `adaptive_random_suffix` |
+| LLM-inference attack | `llm_inference_with_feedback.sh`, `llm_inference_no_feedback.sh` | `llm_inference` |
+| Evolutionary search | `evolutionary_search.sh` | `evolutionary_search` |
+| Benign utility (no attack) | `user_task_benchmark.sh` | — |
+
+Template baselines select the strategy via `attack=` (e.g.
+`attack=direct|ignore_previous|important_instructions|injecagent|system_message|tool_knowledge`).
+
+### Transferability (§4.3)
+
+Optimize suffixes on a source model offline, then transfer them to a target model. Source
+suffixes are read from `config/model_attack_strings/<suite>.yaml` (keyed by `source_model`).
+
+```bash
+# Fixed-injection transfer (Figure 3b): 16 banking tasks, injection_task_4
+python -m rlpi.agentdojo.transfer_attack \
+    source_model=gpt-5 target_model=google/gemini-2.0-flash-001 \
+    test_tasks=banking_fixed_inj4 model_attack_strings=banking
+
+# Cross-task transfer (Figure 3a): 8 pairs across all four suites
+python -m rlpi.agentdojo.transfer_attack \
+    source_model=gpt-5 target_model=google/gemini-2.0-flash-001 \
+    test_tasks=cross_task_8_pairs model_attack_strings=banking
+```
+
+`run_transfer_attack.sh` sweeps a grid of source/target models (including transfer to the
+prompt-injection-hardened `Meta-SecAlign-70B`).
+
+### Ablations (§4.4)
+
+Ablations are command-line overrides on the `trl_suffix` learner:
+
+```bash
+# Effect of feedback model: disable the learned comparison-based reward
+python -m rlpi.agentdojo.adaptive_agentdojo learner=trl_suffix learner.gpt_enabled=false ...
+
+# Effect of LLM policy: swap the attack policy model
+python -m rlpi.agentdojo.adaptive_agentdojo learner=trl_suffix learner.attack_model_name=<hf_model> ...
+
+# Effect of GRPO training: compare against the random adaptive baseline
+python -m rlpi.agentdojo.adaptive_agentdojo learner=adaptive_random_suffix ...
+```
+
+## Supported learners
+
+| `learner=` | Description |
+|-----------|-------------|
+| `trl_suffix`        | **AutoInject** — GRPO suffix policy with comparison-based dense reward |
+| `trl_suffix_joint`  | AutoInject variant with a joint utility + security reward |
+| `adaptive_random_suffix` | Random adaptive attack (feedback-guided mutation) |
+| `llm_inference`     | LLM-inference attack baseline |
+| `evolutionary_search` | Evolutionary search with LLM mutation (MAP-Elites) |
+| `noop`              | Template attacks (no learning) |
+| `random`            | Plain random suffixes |
+
+## Output structure
+
+Hydra writes each run to a timestamped directory:
+
+```
+outputs/{learner.type}/{suite}/{date}/{exp_ident}-{time}/   # single runs
+multirun/{learner.type}/{suite}/{date}/{exp_ident}-{time}/  # --multirun sweeps
+```
+
+## Running on a SLURM cluster
+
+The configs ship with Hydra's `submitit_slurm` launcher. To sweep many
+(user task, injection task) pairs in parallel, append `--multirun` and provide a GPU
+resource spec for your scheduler:
+
+```bash
+python -m rlpi.agentdojo.adaptive_agentdojo \
+    ... \
+    +hydra.launcher.additional_parameters.gpus=<your_gpu>:1 \
+    --multirun
+```
+
+Without SLURM, omit `--multirun` to run a single configuration locally.
+
+## Citation
+
+```bibtex
+@inproceedings{chen2026autoinject,
+  title     = {Learning to Inject: Automated Prompt Injection via Reinforcement Learning},
+  author    = {Chen, Xin and Zhang, Jie and Tram{\`e}r, Florian},
+  year      = {2026}
+  % TODO: add venue and arXiv/OpenReview URL once public.
+}
+```
+
+## License
+
+Released under the [MIT License](LICENSE). The vendored `agentdojo/` directory retains its
+own upstream license.
