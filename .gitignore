@@ -1,5 +1,31 @@
-*.egg-info
-*.pyc
-*.code-workspace
+# Python build / bytecode
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+build/
+dist/
+.eggs/
+
+# Caches & tooling
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Experiment outputs (Hydra)
 outputs/
 multirun/
+logs/
+.submitit/
+
+# Editor / workspace
+*.code-workspace
+.vscode/
+.idea/
+
+# Local secrets (API keys are read from ~/.rlpi_* — never commit keys)
+*.key
+
+# OS
+.DS_Store
