@@ -193,7 +193,9 @@ def get_attack_learner(
 
     Args:
         model: Victim model string (e.g., "gpt-4o-2024-08-06")
-        learner_type: Type of learner ("ppo", "trl_suffix", "llm_inference", "adaptive_random_suffix", "noop", "random")
+        learner_type: Type of learner ("trl_suffix", "trl_suffix_joint",
+            "llm_inference", "adaptive_random_suffix", "evolutionary_search",
+            "noop", "random")
         suite: TaskSuite instance for extracting user name
         **kwargs: Additional learner-specific parameters from config
 
@@ -227,14 +229,7 @@ def get_attack_learner(
         except Exception:
             pass  # Use default
 
-    if learner_type == "ppo":
-        from rlpi.attack.learners.ppo.learner import PPOAttackLearner
-
-        return PPOAttackLearner(
-            default_agent_name=victim_model_name, user_name=user_name, **kwargs
-        )
-
-    elif learner_type == "trl_suffix":
+    if learner_type == "trl_suffix":
         from rlpi.attack.learners.trl_suffix import TRLSuffixLearner
 
         return TRLSuffixLearner(
@@ -276,6 +271,18 @@ def get_attack_learner(
             user_name=user_name,
             feedback_model=selected_feedback_model,  # Fallback if victim lacks logprobs
             **kwargs,  # Includes attack_model_name="Qwen/..." from config (attack policy model)
+        )
+
+    elif learner_type == "evolutionary_search":
+        from rlpi.attack.learners.evolutionary_search import (
+            EvolutionarySearchLearner,
+        )
+
+        return EvolutionarySearchLearner(
+            victim_model_name=victim_model_name,
+            user_name=user_name,
+            feedback_model=selected_feedback_model,
+            **kwargs,
         )
 
     elif learner_type == "noop":

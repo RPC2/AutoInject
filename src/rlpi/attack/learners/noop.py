@@ -13,7 +13,10 @@ class NoopAttackLearner(AdaptiveAttackLearner[T]):
     """
 
     def __init__(self, *args, **kwargs):
-        super().__init__(learning_rate=0.0)
+        # Initialize with empty token list but keep the interface compatible
+        super().__init__(
+            initial_tokens=[], learning_rate=0.0, exploration_rate=0.0
+        )
 
     def modify_tasks(self, tasks: List[T], user_task: str) -> None:
         """No-op implementation that returns tasks unmodified."""

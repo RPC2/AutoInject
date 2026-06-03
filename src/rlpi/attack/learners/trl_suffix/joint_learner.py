@@ -118,7 +118,7 @@ class TRLSuffixJointLearner(AdaptiveAttackLearner):
             gpt_enabled: Enable GPT-based feedback
             gpt_*: GPT feedback configuration parameters
         """
-        super().__init__()
+        super().__init__(initial_tokens=[], exploration_rate=0.0)
 
         # Store all config parameters
         self._store_config_params(locals())

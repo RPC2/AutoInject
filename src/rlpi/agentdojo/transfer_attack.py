@@ -16,7 +16,6 @@ from agentdojo.task_suite.load_suites import get_suite
 from rlpi.agentdojo.utils import (
     calculate_average_scores,
     execute_single_benchmark,
-    load_module_environment,
     setup_pipeline_and_attacker,
 )
 from rlpi.attack.learners.trl_suffix.utils import format_trl_suffix_prompt
@@ -376,7 +375,6 @@ def run_transfer_attack(
 )
 def main(cfg: DictConfig):
     """Main entry point for transfer attack experiment."""
-    load_module_environment("eth_proxy")
     print("Configuration used:")
     print(cfg)
 
