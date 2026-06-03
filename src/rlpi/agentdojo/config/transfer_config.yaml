@@ -4,11 +4,9 @@ defaults:
   - model_attack_strings: banking
   - override hydra/launcher: submitit_slurm
 
-# Source model information
+# Source model whose optimized attack strings are transferred. Must match a key
+# in the selected model_attack_strings config group (see config/model_attack_strings/).
 source_model: gpt-5
-
-# GPT-5 experiment directory for finding successful attack suffixes
-gpt5_experiment_dir: /cluster/project/infk/krause/chexin/rlpi/multirun/trl_suffix/banking/2025-11-27/gpt-5_trl_all_tasks-09-45-54
 
 # Target model information
 exp_ident: transfer
@@ -42,8 +40,8 @@ hydra:
     nodes: 1
     name: ${exp_ident}
     _target_: hydra_plugins.hydra_submitit_launcher.submitit_launcher.SlurmLauncher
-    # additional_parameters: {"gpus": "titan_rtx:1"}
-    # additional_parameters: {}
+    # For GPU sweeps on SLURM, set a resource spec for your scheduler, e.g.:
+    # additional_parameters: {"gpus": "<your_gpu>:1"}
     mem_per_cpu: 16G
     setup:
       - '#SBATCH --requeue'

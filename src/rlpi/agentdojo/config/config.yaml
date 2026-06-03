@@ -1,6 +1,6 @@
 defaults:
   - _self_
-  - learner: ppo
+  - learner: trl_suffix
   - override hydra/launcher: submitit_slurm
 
 # Experiment settings
@@ -35,7 +35,8 @@ hydra:
     nodes: 1
     name: ${exp_ident}
     _target_: hydra_plugins.hydra_submitit_launcher.submitit_launcher.SlurmLauncher
-    # additional_parameters: {"gpus": "titan_rtx:1"}
+    # For GPU sweeps on SLURM, set a resource spec for your scheduler, e.g.:
+    # additional_parameters: {"gpus": "<your_gpu>:1"}
     mem_per_cpu: 32G
     setup:
       - '#SBATCH --requeue'

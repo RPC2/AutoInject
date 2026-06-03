@@ -68,5 +68,4 @@ python -m rlpi.agentdojo.adaptive_agentdojo \
     learner.universal_suffix_mode=$UNIVERSAL_SUFFIX_MODE \
     learner.universal_reward_aggregation=$UNIVERSAL_REWARD_AGGREGATION \
     learner.disable_early_stopping=true \
-    +hydra.launcher.additional_parameters.gpus=titan_rtx:1 \
     --multirun &

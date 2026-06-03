@@ -99,7 +99,6 @@ for suite in travel; do
         learner.grpo_learning_rate=$GRPO_LEARNING_RATE \
         learner.grpo_per_device_train_batch_size=$GRPO_BATCH_SIZE \
         learner.gpt_enabled=true \
-        +hydra.launcher.additional_parameters.gpus=titan_rtx:1 \
         --multirun &
 
     echo "Completed suite: ${suite}"
