@@ -44,7 +44,6 @@ UNIVERSAL_REWARD_AGGREGATION="mean"  # How to aggregate: "mean", "min", "max", "
 # API Keys and Environment
 # ==============================================================================
 export OPENAI_API_KEY=$(cat ~/.rlpi_openai_key)
-export TOGETHER_API_KEY=$(cat ~/.rlpi_togetherai_key)
 export TOKENIZERS_PARALLELISM=false
 
 # ==============================================================================

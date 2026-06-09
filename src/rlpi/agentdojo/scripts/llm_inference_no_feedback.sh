@@ -33,7 +33,6 @@ GPT_ENABLED=false  # Disable GPT-based suffix quality feedback
 # API Keys and Environment
 # ==============================================================================
 export OPENAI_API_KEY=$(cat ~/.rlpi_openai_key)
-export TOGETHER_API_KEY=$(cat ~/.rlpi_togetherai_key)
 export TOKENIZERS_PARALLELISM=false
 
 # ==============================================================================

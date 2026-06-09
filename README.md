@@ -76,7 +76,6 @@ reads them automatically):
 |------|----------|
 | `~/.rlpi_openai_key`     | OpenAI models (GPT-4.1-nano, GPT-5-nano, GPT-4o-mini feedback) |
 | `~/.rlpi_openrouter_key` | OpenRouter models (e.g. Claude, some Gemini routes) |
-| `~/.rlpi_togetherai_key` | Together AI models |
 
 We recommend issuing a test query to your chosen provider first to confirm the key works.
 

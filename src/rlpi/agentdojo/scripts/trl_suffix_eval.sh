@@ -65,7 +65,6 @@ suite_injection_tasks[slack]="[injection_task_1],[injection_task_2],[injection_t
 # API Keys and Environment
 # ==============================================================================
 export OPENAI_API_KEY=$(cat ~/.rlpi_openai_key)
-export TOGETHER_API_KEY=$(cat ~/.rlpi_togetherai_key)
 export TOKENIZERS_PARALLELISM=false
 
 # ==============================================================================

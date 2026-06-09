@@ -41,7 +41,6 @@ GRPO_ADAM_BETA2=0.98      # Adam beta2 - higher = more conservative optimizer
 # API Keys and Environment
 # ==============================================================================
 export OPENAI_API_KEY=$(cat ~/.rlpi_openai_key)
-export TOGETHER_API_KEY=$(cat ~/.rlpi_togetherai_key)
 export TOKENIZERS_PARALLELISM=false
 
 # ==============================================================================
