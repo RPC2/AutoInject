@@ -4,9 +4,9 @@ from typing import Dict
 
 from agentdojo.models import MODEL_NAMES, MODEL_PROVIDERS, ModelsEnum
 
-# FIXED: Use lazy imports to avoid CUDA library error when not using PPO
+# Heavy learners are imported lazily inside get_attack_learner to avoid
+# loading CUDA/transformers when they are not needed.
 from rlpi.attack.learners.noop import NoopAttackLearner
-from rlpi.attack.learners.random_learner import RandomAttackLearner
 from rlpi.attack.utils import get_user_name_from_environment
 
 logger = logging.getLogger(__name__)
@@ -193,9 +193,8 @@ def get_attack_learner(
 
     Args:
         model: Victim model string (e.g., "gpt-4o-2024-08-06")
-        learner_type: Type of learner ("trl_suffix", "trl_suffix_joint",
-            "llm_inference", "adaptive_random_suffix", "evolutionary_search",
-            "noop", "random")
+        learner_type: Type of learner ("trl_suffix", "llm_inference",
+            "adaptive_random_suffix", "evolutionary_search", "noop")
         suite: TaskSuite instance for extracting user name
         **kwargs: Additional learner-specific parameters from config
 
@@ -239,18 +238,6 @@ def get_attack_learner(
             **kwargs,  # Includes attack_model_name="Qwen/..." from config (attack policy model)
         )
 
-    elif learner_type == "trl_suffix_joint":
-        from rlpi.attack.learners.trl_suffix.joint_learner import (
-            TRLSuffixJointLearner,
-        )
-
-        return TRLSuffixJointLearner(
-            victim_model_name=victim_model_name,
-            user_name=user_name,
-            feedback_model=selected_feedback_model,  # Fallback if victim lacks logprobs
-            **kwargs,  # Includes attack_model_name="Qwen/..." from config (attack policy model)
-        )
-
     elif learner_type == "adaptive_random_suffix":
         from rlpi.attack.learners.adaptive_random_suffix import (
             AdaptiveRandomSuffixLearner,
@@ -287,7 +274,5 @@ def get_attack_learner(
 
     elif learner_type == "noop":
         return NoopAttackLearner(**kwargs)
-    elif learner_type == "random":
-        return RandomAttackLearner(**kwargs)
     else:
         raise ValueError(f"Unknown learner type: {learner_type}")

@@ -143,12 +143,10 @@ python -m rlpi.agentdojo.adaptive_agentdojo learner=adaptive_random_suffix ...
 | `learner=` | Description |
 |-----------|-------------|
 | `trl_suffix`        | **AutoInject** — GRPO suffix policy with comparison-based dense reward |
-| `trl_suffix_joint`  | AutoInject variant with a joint utility + security reward |
 | `adaptive_random_suffix` | Random adaptive attack (feedback-guided mutation) |
 | `llm_inference`     | LLM-inference attack baseline |
 | `evolutionary_search` | Evolutionary search with LLM mutation (MAP-Elites) |
 | `noop`              | Template attacks (no learning) |
-| `random`            | Plain random suffixes |
 
 ## Output structure
 
