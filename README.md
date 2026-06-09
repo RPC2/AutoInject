@@ -6,9 +6,8 @@ AutoInject is a **black-box reinforcement-learning framework** that learns adver
 suffixes for prompt injection against LLM agents. Its core idea is a *learned,
 comparison-based reward*: each candidate suffix is scored against the best suffix seen
 so far, turning the binary attack-success signal into a dense reward that GRPO can
-optimize. The framework supports both online query-based attacks and offline-trained
-**transferable** suffixes, and can incorporate a utility objective when task-completion
-feedback is available. Attacks are evaluated on [AgentDojo](https://github.com/ethz-spylab/agentdojo).
+optimize. It can also incorporate a utility objective when task-completion feedback is
+available. Attacks are evaluated on [AgentDojo](https://github.com/ethz-spylab/agentdojo).
 
 > **Abstract.** Prompt injection is a critical vulnerability in LLM agents, yet the
 > strongest methods still rely on human red-teamers and hand-crafted prompts. Adapting
@@ -38,8 +37,7 @@ AutoInject/
 ├── src/rlpi/
 │   ├── agentdojo/
 │   │   ├── adaptive_agentdojo.py   # Main entry point: online attacks / training
-│   │   ├── transfer_attack.py      # Transfer-attack entry point
-│   │   ├── config/                 # Hydra configs (learners, suites, transfer)
+│   │   ├── config/                 # Hydra configs (learners, suites)
 │   │   └── scripts/                # Example run scripts for every experiment
 │   └── attack/
 │       ├── learner_factory.py      # Dispatches learner type -> implementation
@@ -106,7 +104,12 @@ written under `outputs/` (see [Output structure](#output-structure)).
 Example scripts live in `src/rlpi/agentdojo/scripts/`. Edit the variables at the top of
 each script (model, suite, task lists) to match the configuration you want.
 
-### Main results (Table 1) — ASR & utility across production models
+### Attacks and baselines
+
+These runs produce the core attack-vs-baseline comparisons reported in the paper's main
+results (attack success rate and utility across production models and task suites). Run
+each method across the four suites (`suite=banking|slack|travel|workspace`) and the models
+you want to evaluate.
 
 | Method | Script | Learner |
 |--------|--------|---------|
@@ -119,26 +122,6 @@ each script (model, suite, task lists) to match the configuration you want.
 
 Template baselines select the strategy via `attack=` (e.g.
 `attack=direct|ignore_previous|important_instructions|injecagent|system_message|tool_knowledge`).
-
-### Transferability (§4.3)
-
-Optimize suffixes on a source model offline, then transfer them to a target model. Source
-suffixes are read from `config/model_attack_strings/<suite>.yaml` (keyed by `source_model`).
-
-```bash
-# Fixed-injection transfer (Figure 3b): 16 banking tasks, injection_task_4
-python -m rlpi.agentdojo.transfer_attack \
-    source_model=gpt-5 target_model=google/gemini-2.0-flash-001 \
-    test_tasks=banking_fixed_inj4 model_attack_strings=banking
-
-# Cross-task transfer (Figure 3a): 8 pairs across all four suites
-python -m rlpi.agentdojo.transfer_attack \
-    source_model=gpt-5 target_model=google/gemini-2.0-flash-001 \
-    test_tasks=cross_task_8_pairs model_attack_strings=banking
-```
-
-`run_transfer_attack.sh` sweeps a grid of source/target models (including transfer to the
-prompt-injection-hardened `Meta-SecAlign-70B`).
 
 ### Ablations (§4.4)
 
