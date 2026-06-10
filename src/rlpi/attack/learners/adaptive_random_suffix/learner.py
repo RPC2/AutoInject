@@ -82,7 +82,7 @@ class AdaptiveRandomSuffixLearner(AdaptiveAttackLearner):
         All parameters are typically provided via Hydra config.
         See src/rlpi/agentdojo/config/learner/adaptive_random_suffix.yaml for defaults.
         """
-        super().__init__()
+        super().__init__(initial_tokens=[], exploration_rate=0.0)
 
         # Store all config parameters
         self._store_config_params(locals())

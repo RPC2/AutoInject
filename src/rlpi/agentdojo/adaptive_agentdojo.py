@@ -106,10 +106,8 @@ def run_adaptive_attack(
         injection_tasks=list(wrapped_tasks_dict.values()),
     )
 
-    # TRL suffix, adaptive random suffix, and LLM inference learners only support single (user_task, injection_task) pair
-    # trl_suffix_joint supports multiple pairs
-    is_joint_training = learner_type == "trl_suffix_joint"
-
+    # The suffix and inference learners support exactly one
+    # (user_task, injection_task) pair per run.
     if learner_type in [
         "trl_suffix",
         "adaptive_random_suffix",
@@ -203,24 +201,6 @@ def run_adaptive_attack(
     else:
         logger.info("No checkpoint found, starting fresh training")
 
-    # For joint training, set up task pairs in the learner
-    if is_joint_training:
-        if hasattr(learner, "task_pairs"):
-            # Build all task pairs
-            task_pairs = []
-            for user_task in user_tasks_to_run:
-                for (
-                    injection_task_id,
-                    wrapped_injection_task,
-                ) in wrapped_tasks_dict.items():
-                    # Store the wrapped task (InjectionTaskModifier) directly
-                    # It has _original_goal attribute and delegates other attributes to the wrapped task
-                    task_pairs.append((user_task, wrapped_injection_task))
-            learner.task_pairs = task_pairs
-            logger.info(
-                f"Set up {len(task_pairs)} task pairs for joint training"
-            )
-
     queries_used = 0
     iteration = 0
     early_stop_triggered = False
@@ -267,37 +247,11 @@ def run_adaptive_attack(
                 queries_used += 1
                 pbar.update(1)
 
-                # Update learner with scores (may trigger training)
-                if is_joint_training:
-                    # Update scores per pair (same for both universal and conditional modes)
-                    for (
-                        ut_id,
-                        it_id,
-                    ), utility in task_utility_results.items():
-                        security = task_security_results.get(
-                            (ut_id, it_id), 0.0
-                        )
-                        learner.update_scores(
-                            success_rate=security,
-                            utility_score=utility,
-                            user_task_id=ut_id,
-                            injection_task_id=it_id,
-                            user_task_str=user_task.PROMPT,
-                        )
-                    # In universal mode, aggregate scores after collecting all pairs
-                    is_universal = getattr(
-                        learner, "universal_suffix_mode", False
-                    )
-                    if is_universal and hasattr(
-                        learner, "aggregate_universal_scores"
-                    ):
-                        learner.aggregate_universal_scores()
-                else:
-                    # For single-pair training, use aggregated scores
-                    learner.update_scores(
-                        success_rate=asr,
-                        utility_score=avg_utility,
-                    )
+                # Update learner with aggregated scores (may trigger training)
+                learner.update_scores(
+                    success_rate=asr,
+                    utility_score=avg_utility,
+                )
 
                 # Accumulate queries used during training
                 if hasattr(learner, "get_training_queries_used"):

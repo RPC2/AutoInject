@@ -161,6 +161,8 @@ class SuffixEvaluator:
 
         logger.info(f"[EVALUATOR] Generated suffix: {suffix}")
 
+        # Use TraceLogger if logdir is available
+        # TODO: Check if the attacks are actually logged
         if self.logdir:
             delegate_logger = Logger.get()
             delegate_logger.logdir = self.logdir

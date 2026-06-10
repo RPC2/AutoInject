@@ -2,7 +2,6 @@
 
 import logging
 import os
-import subprocess
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -25,46 +24,6 @@ from rlpi.attack.templates.templates import AGENT_ATTACK_TEMPLATES
 
 # Configure logging
 logger = logging.getLogger(__name__)
-
-
-def load_module_environment(module_name: str) -> bool:
-    """Load a module and apply its environment variables to the current process.
-
-    This function will never raise exceptions or stop execution. If the module
-    cannot be loaded, it will log a message and return False, allowing the
-    program to continue running.
-    """
-    try:
-        # Use subprocess to run the module command and capture the environment
-        # Add timeout to prevent hanging if module command is unavailable
-        result = subprocess.run(
-            f"module load {module_name} && env",
-            shell=True,
-            capture_output=True,
-            text=True,
-            executable="/bin/bash",
-        )
-        if result.returncode == 0:
-            # Parse the environment variables and apply them to current process
-            for line in result.stdout.strip().split("\n"):
-                if "=" in line:
-                    key, value = line.split("=", 1)
-                    os.environ[key] = value
-            logger.info(f"Successfully loaded module {module_name}")
-            return True
-        else:
-            # Use info level instead of warning since module loading failure
-            # is not critical and shouldn't stop execution
-            logger.info(
-                f"Could not load module {module_name} (this is non-fatal): {result.stderr}"
-            )
-            return False
-    except Exception as e:
-        # Catch any other exceptions to ensure program continues
-        logger.info(
-            f"Failed to load module {module_name} (this is non-fatal): {e}"
-        )
-        return False
 
 
 # Try to load OpenAI API key from file if not already set

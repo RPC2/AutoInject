@@ -1,0 +1,36 @@
+# @package _global_
+learner:
+  type: evolutionary_search
+  # Mutator model (same as our PPO policy for fair comparison)
+  attack_model_name: "Qwen/Qwen2-1.5B"
+  device: "cuda"
+  seed: 42
+  feedback_fallback_model: "gpt-4o-mini-2024-07-18"
+
+  # Mutator generation parameters
+  mutator_temperature: 0.9
+  mutator_top_p: 0.95
+  n_children: 8
+
+  # MAP Elites controller
+  num_islands: 5
+  length_bins: 3
+  diversity_bins: 3
+  n_parents: 4
+
+  # Seed population
+  num_seed_triggers: 5
+
+  # General
+  verbose: true
+  save_outputs: true
+
+  # GPT feedback (same as other learners for fair comparison)
+  gpt_enabled: true
+  gpt_sparse_threshold: 0.1
+  gpt_medium_threshold: 0.3
+  gpt_dense_threshold: 0.5
+  gpt_sparse_weight: 0.8
+  gpt_medium_weight: 0.5
+  gpt_transition_weight: 0.3
+  gpt_dense_weight: 0.1

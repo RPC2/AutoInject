@@ -41,7 +41,6 @@ GRPO_ADAM_BETA2=0.98      # Adam beta2 - higher = more conservative optimizer
 # API Keys and Environment
 # ==============================================================================
 export OPENAI_API_KEY=$(cat ~/.rlpi_openai_key)
-export TOGETHER_API_KEY=$(cat ~/.rlpi_togetherai_key)
 export TOKENIZERS_PARALLELISM=false
 
 # ==============================================================================
@@ -62,6 +61,8 @@ python -m rlpi.agentdojo.adaptive_agentdojo \
     learner.grpo_num_iterations=$GRPO_NUM_ITERATIONS \
     learner.grpo_learning_rate=$GRPO_LEARNING_RATE \
     learner.gpt_enabled=true
-    # +hydra.launcher.additional_parameters.gpus=titan_rtx:1 \
+    # To sweep many (user_task, injection_task) pairs on a SLURM cluster,
+    # uncomment the two lines below and set a GPU resource for your scheduler:
+    # +hydra.launcher.additional_parameters.gpus=<your_gpu>:1 \
     # --multirun &
 

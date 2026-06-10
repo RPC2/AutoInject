@@ -33,7 +33,6 @@ GPT_ENABLED=false  # Disable GPT-based suffix quality feedback
 # API Keys and Environment
 # ==============================================================================
 export OPENAI_API_KEY=$(cat ~/.rlpi_openai_key)
-export TOGETHER_API_KEY=$(cat ~/.rlpi_togetherai_key)
 export TOKENIZERS_PARALLELISM=false
 
 # ==============================================================================
@@ -54,5 +53,4 @@ python -m rlpi.agentdojo.adaptive_agentdojo \
     learner.num_experience_examples=$NUM_EXPERIENCE_EXAMPLES \
     learner.include_gpt_reasoning=$INCLUDE_GPT_REASONING \
     learner.gpt_enabled=$GPT_ENABLED \
-    +hydra.launcher.additional_parameters.gpus=titan_rtx:1 \
     --multirun &

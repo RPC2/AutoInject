@@ -28,7 +28,7 @@ def set_seed(seed: int) -> None:
 def get_user_name_from_environment(suite_name: str, environment) -> str:
     """Extract user name from suite environment.
 
-    Shared utility for all learners (PPO, TRL suffix, etc.)
+    Shared utility for all learners.
 
     Args:
         suite_name: Suite name ("banking", "travel", "workspace", "slack")
