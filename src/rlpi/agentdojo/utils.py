@@ -20,7 +20,6 @@ from rlpi.attack.templates.task_modifier import (
     InjectionTaskModifier,
     ModifiedGoalAttack,
 )
-from rlpi.attack.templates.templates import AGENT_ATTACK_TEMPLATES
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -117,10 +116,8 @@ def get_wrapped_injection_tasks(
     else:
         raw_tasks = suite.injection_tasks
 
-    templates = AGENT_ATTACK_TEMPLATES
-
     return {
-        task_id: InjectionTaskModifier(task, templates=templates)
+        task_id: InjectionTaskModifier(task)
         for task_id, task in raw_tasks.items()
     }
 

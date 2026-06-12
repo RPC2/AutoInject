@@ -3,9 +3,8 @@
 """Implementation of the TaskModifier protocol for BaseInjectionTask."""
 
 import copy
-import enum
 import logging
-from typing import Any, Dict, Optional, Sequence, TypeVar, Union
+from typing import Any, Sequence, TypeVar, Union
 
 from agentdojo.agent_pipeline import BasePipelineElement
 from agentdojo.attacks.attack_registry import register_attack
@@ -40,34 +39,22 @@ class ModifiedGoalAttack(BaseAttack):
         return injections
 
 
-class ModificationStrategy(enum.Enum):
-    """Enum defining different ways to modify the injection prompt."""
-
-    PREPEND = "prepend"
-    APPEND = "append"
-    REPLACE_SECTION = "replace"
-    TEMPLATE_FILL = "template"
-
-
 class InjectionTaskModifier(BaseInjectionTask):
-    """A wrapper for injection tasks that allows modifying the goal using various strategies
-    or by setting a fully pre-formatted goal.
+    """A wrapper for injection tasks that allows modifying the goal by setting
+    a fully pre-formatted goal (e.g. an attack suffix).
     Inherits from BaseInjectionTask and delegates most functionality.
 
     Args:
         task: The injection task to wrap
-        templates: Optional dictionary of named template strings for TEMPLATE_FILL strategy.
     """
 
     def __init__(
         self,
         task: BaseInjectionTask,
-        templates: Optional[Dict[str, str]] = None,
     ):
         self.task = task
         self._original_goal = copy.deepcopy(task.GOAL)  # Store original goal
         self.partial_success_signals = True
-        self.templates = templates or {}
 
         # Initialize GOAL to original
         self.GOAL = self._original_goal
