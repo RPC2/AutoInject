@@ -9,6 +9,8 @@ so far, turning the binary attack-success signal into a dense reward that GRPO c
 optimize. It can also incorporate a utility objective when task-completion feedback is
 available. Attacks are evaluated on [AgentDojo](https://github.com/ethz-spylab/agentdojo).
 
+Paper: [Learning to Inject: Automated Prompt Injection via Reinforcement Learning](https://arxiv.org/abs/2602.05746) ([arXiv](https://arxiv.org/abs/2602.05746)).
+
 > **Abstract.** Prompt injection is a critical vulnerability in LLM agents, yet the
 > strongest methods still rely on human red-teamers and hand-crafted prompts. Adapting
 > automated jailbreak optimizers does not close this gap: jailbreaks shape models toward
@@ -178,8 +180,9 @@ Without SLURM, omit `--multirun` to run a single configuration locally.
 @inproceedings{chen2026autoinject,
   title     = {Learning to Inject: Automated Prompt Injection via Reinforcement Learning},
   author    = {Chen, Xin and Zhang, Jie and Tram{\`e}r, Florian},
-  year      = {2026}
-  % TODO: add venue and arXiv/OpenReview URL once public.
+  booktitle = {NeurIPS 2026},
+  year      = {2026},
+  url       = {https://arxiv.org/abs/2602.05746}
 }
 ```
 
